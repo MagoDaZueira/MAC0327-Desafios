@@ -9,13 +9,17 @@ ll dp(int v, int round, vector<vector<int> >& edges, vector<ll>& a, vector<vecto
         return memo[v][round];
     
     ll res = 0;
-    int r1 = (round + 1) % 3;
-    int r2 = (round + 2) % 3;
-    
+    int max_rounds = memo[0].size();
+
     for (auto& vert : edges[v]) {
         if (vert != dad) {
-            res += min(dp(vert, r1, edges, a, memo, v),
-                       dp(vert, r2, edges, a, memo, v));
+            ll temp = LLONG_MAX;
+            for (int r = 0; r < max_rounds; r++) {
+                if (r != round) {
+                    temp = min(temp, dp(vert, r, edges, a, memo, v));
+                }
+            }
+            res += temp;
         }
     }
 
@@ -55,11 +59,13 @@ int main() {
                 }
             }
 
-            vector<vector<ll> > memo(n+1, vector<ll>(3, -1));
+            int max_steps = log2(n);
+            vector<vector<ll> > memo(n+1, vector<ll>(max_steps+1, -1));
 
-            ll ans = dp(root, 0, edges, a, memo, 0);
-            ans = min(ans, dp(root, 1, edges, a, memo, 0));
-            ans = min(ans, dp(root, 2, edges, a, memo, 0));
+            ll ans = LLONG_MAX;
+            for (int i = 0; i <= max_steps; i++) {
+                ans = min(ans, dp(root, i, edges, a, memo, 0));
+            }
 
             cout << ans << endl;
         }
