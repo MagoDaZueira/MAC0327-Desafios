@@ -5,36 +5,50 @@ typedef pair<int,int> pii;
 
 void solve() {
     int n, m; cin >> n >> m;
-    vector<vector<pii>> adj(n+1);
+    vector<vector<int>> adj(n+1);
     for (int i = 0; i < m; i++) {
         int a, b, c; cin >> a >> b >> c;
-        adj[a].push_back({b, c});
-        adj[b].push_back({a, c});
+        adj[a].push_back(c);
+        adj[b].push_back(c);
     }
     int b, e; cin >> b >> e;
 
-    set<pii> visited;
-    deque<tuple<int, int, int>> dq;
-    dq.push_front({b, -1, 0});
+    int v_count = n+1;
+    unordered_map<int, int> c_to_v;
+    for (int i = 1; i <= n; i++) {
+        for (auto c : adj[i]) {
+            if (!c_to_v.count(c)) {
+                c_to_v[c] = v_count++;
+            }
+        }
+    }
 
-    while (!dq.empty()) {
-        auto [curr, last_color, d] = dq.front();
-        dq.pop_front();
+    vector<vector<int>> adj2(v_count+1);
+    for (int i = 1; i <= n; i++) {
+        for (auto c : adj[i]) {
+            int color = c_to_v[c];
+            adj2[i].push_back(color);
+            adj2[color].push_back(i);
+        }
+    }
 
-        if (curr == e) {
-            cout << d << endl;
+    vector<bool> visited(v_count+1, false);
+    queue<pii> q;
+    q.push({b, 0});
+
+    while (!q.empty()) {
+        auto [u, d] = q.front();
+        q.pop();
+
+        if (u == e) {
+            cout << d/2 << endl;
             return;
         }
 
-        for (auto [v, c] : adj[curr]) {
-            if (visited.count({v, c})) continue;
-            visited.insert({v, c});
-
-            if (c == last_color) {
-                dq.push_front({v, c, d});
-            } else {
-                dq.push_back({v, c, d + 1});
-            }
+        for (auto v : adj2[u]) {
+            if (visited[v]) continue;
+            visited[v] = true;
+            q.push({v, d + 1});
         }
     }
 }
